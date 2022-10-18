@@ -235,10 +235,90 @@ where ename like '%E%' and deptno = 30 and sal not between 1000 and 2000;
 --where ename like '%E%' and deptno = 30 and not sal < 2000;
 
 select *
-from emp
-where comm is null and 
-job in('CLERK','MANAGER') and 
-mgr is not null and 
-not ename like '_L%';
+from emp where comm is null and job in('CLERK','MANAGER') and mgr is not null and not ename like '_L%';
 
 -- job = 'CLERK' or job = 'MANAGER'해도 됨
+
+-- 함수 
+
+-- 문자 함수 : upper, lower, substr, instr, rpad, lpad, replace, concat
+-- 숫자 함수 :
+-- 날짜 함수 :
+
+
+--select "Welcome',upper(Welcome)
+--from dual;
+
+select lower(ename),upper(ename)
+from emp;
+
+select *
+from emp
+where lower(ename) = 'soctt';
+
+select ename,length(ename)     --실행하는 문자열의 길의
+from emp;
+
+--      1                       17
+--     -17                      -1
+select 'Welcome to Oracle',substr('Welcome to Oracle',2,3)      --2번째 위치부터 3번째 위치까지 출력
+from dual;                                                     --하나만 지정할 경우 그 위치부터 끝까지 출력
+
+select 'Welcome to Oracle',substr('Welcome to Oracle',-3,3)      
+from dual;  
+select 'Welcome to Oracle',substr('Welcome to Oracle',-3,3),substr('Welcome to Oracle',-17)    --값은 항상 왼쪽에서 오른쪽으로   
+from dual; 
+
+select instr('Welcome to Oracle',' ')    -- instr 문자열의 위치값 출력
+from dual;
+
+select instr('Welcome to Oracle','o',6)    -- , 두번쨰 입력값은 시작위치
+from dual;
+
+select instr('Welcome to Oracle','e',3,2)    -- , 세번째 값은 입력값째 위치의 위치값을 출력
+from dual;
+
+select 'Welcome to Oracle',replace('Welcome to Oracle','to','of')    -- replace (출력문,변경할 위치값,변경할 값)
+from dual;
+
+select 'oracle',lpad('oracle',10,'#'),rpad('oracle',10,'#')   -- lpad 왼쪽(문자열,칸 기준,채울문자열) rpad 오른쪽 *빈공간확보
+from dual;
+
+select rpad('990113-',14,'*')   --주민번호 뒤에 안보이게 할 경우 활용 예시
+from dual;
+
+select concat(empno,ename), empno || '' || ename  -- concat 두문자열을 합치는 함수   '' 호따옴표
+from emp;
+
+-- ================================숫자==========================================
+
+select round(1234.5678),               --round 소수점에서 반올림
+       round(1234.5678,0),             --소수점 0번째 자리까지 표현  소수점 1번째에서 반올림
+       round(1234.5678,1),             -- 소수점 1번째 자리까지 표현 소수점 2번째에서 반올림
+       round(1234.5678,2),
+       round(1234.5678,-1)             -- 소수점 기준 왼쪽으로 정수를 반올림 ->1230
+from dual;
+
+select trunc(1234.5678),               -- 특정 위치를 버리는 함수
+       trunc(1234.5678,0),            
+       trunc(1234.5678,1),             -- 소수점 1번쨰 이후로 버림
+       trunc(1234.5678,2),             -- 소수점 2번째 이후로 버림
+       trunc(1234.5678,-1)             
+from dual;
+
+select
+      ceil(3.14),             -- 자신보다 큰 가장 가까운 정수
+      floor(3.14),            -- 자신보다 작은 가장 가까운 정수
+      ceil(-3.14),            -- -3 
+      floor(-3.14)            -- -4
+from dual;
+
+select mod(5,2),mod(10,4)    -- 나머지 구하는 함수 첫번째 입력값에 두번쨰 입력값을 나눈 나머지
+from dual;
+
+select *
+from emp
+where mod(empno,2) = 1;      --홀수만 출력하는 함수
+
+select empno
+from emp;
