@@ -946,8 +946,13 @@ select empno,ename,mgr,
     select * from emp
     where 1 != 1;                        -- 데이터는 없애고 컬럼구조만 가져올 때
     
+    drop table emp_temp;
+    
     select *
     from emp_temp;
+    
+     select * from emp_temp
+    where 1 != 1;
     
     insert into emp_temp (empno, ename, job, mgr, hiredate, sal, comm, deptno)
     values (9999,'강문원','PRESIDENT',NULL,'2022/10/21',5000,1000,10);
@@ -1241,6 +1246,36 @@ select empno,ename,mgr,
     job varchar(9),
     deptno number(2)
     );
+    
+    create table book (
+     b_id varchar2(10) primary key,
+     b_name varchar2(2) not null
+     );
+     
+     insert into book
+     values ('kin','k');
+     
+     select b_id,b_name
+     from book;
+     
+     select * 
+     from book
+     where 1 != 1;
+     
+    select b_name,r_date
+    from book b inner join rental r
+    on b.b_id = r.b_id;
+    
+     create table rental(
+     b_id varchar2(10),
+     r_date date
+     );
+     
+    insert into rental
+     values ('kin',sysdate);
+     
+     select * from rental;
+     
     
     drop table emp04;
     
@@ -1565,6 +1600,12 @@ delete from dept11
     as
     select * from emp;
     
+    create table book_copy
+    as
+    select * from book;
+    
+    select * from book_copy;
+    
     alter table emp_copy
     add constraint emp_copy_deptno_fk foreign key(deptno) references dept(deptno);
     
@@ -1729,12 +1770,12 @@ delete from dept11
      
      select rownum,empno,ename,hiredate
      from view_hiredate
-     where rownum <= 7;
+     where rownum <= 5;
      
      
      ----------------------rownum 을 2 ~ 5 까지만 출력을 원할 경우-----------------
      
-      select rownum,empno,ename,hiredate
+     select rownum,empno,ename,hiredate
      from view_hiredate
      where rownum betweend 2 and 5;   --between이 적용되지 않음
      
@@ -1793,6 +1834,14 @@ delete from dept11
    -- maxvalue     최대값 => 10의 1027
    -- minvalue     최소값 => 10의 -1027
    
+   create sequence book_seq
+   start with 10
+   increment by 10
+   maxvalue 1000;
+   
+   select book_seq.nextval
+   from book;
+   
    create sequence dept_deptno_seq
    increment by 10
    start with 10;
@@ -1802,6 +1851,8 @@ delete from dept11
    
    select dept_deptno_seq.currval         --증가된 값이 현재 얼마인지
    from dual;
+   
+   drop sequence dept_deptno_seq;
    
    create sequence emp_seq
    start with 1
@@ -1821,6 +1872,893 @@ delete from dept11
    insert into emp01
    values (emp_seq.nextval,'hong',sysdate);
    
+   create table product1(
+      pid varchar2(10),
+      pname varchar2(10),
+      price number(5),
+      
+      constraint product_pid_pk primary key(pid) 
+      );
+      
+      create sequence idx_product_id
+      start with 1000;
    
+     insert into product1(pid,pname,price)
+     values ('pid'||idx_product_id.nextval,'치즈',2000);  --특정 문자를 붙일 경우 해당 내용 참고
+     
+     select * from product1;
+     
+     drop sequence idx_product_id;
+     
+     
+     ----------------------------사용자 관리-------------------------------------
+     
+     -- 사용자 관리 create, drop
+     -- create user 계정명 identified by 패스워드
+     -- alter user 계정명 inentified by 패스워드
+     -- drop user 계정명 cascade
+     
+     create user user01 identified by 1234;
+     
+    -- DCL(제어어)
+    -- grant(권한부여), revoke(권한회수)
+    -- grant 시스템 권한 to 계정명
+    -- revoke 시스템 권한 from 계정명
+    
+    create user user01 identified by 1234;       -- 생성 (관리자)
+    
+    alter user user01 identified by tiger;       -- 변경 (관리자)
+    
+    drop user user01 CASCADE;                    -- 삭제 (관리자)
+
+     grant create table                          -- 권한부여 (관리자)
+     to user01;
+    
+    revoke create table                          -- 권한회수 (관리자)
+    from user01;
    
+    alter user user01                            -- 데이터 용량 설정 (관리자)
+    quota 2m on users;
+    
+    -- 시스템 권한 (create .....)
+    -- 객체 권한 (select ....)
+    
+    --grant 객체권한 종류
+    --on 객체명
+    --to 계정명
+    
+    --롤
+ create user user02 identified by 1234;
+ 
+ grant CREATE SESSION to user02;
+ 
+ grant connect,resource                       --connect 각각 8개정도의 권한 
+ to user02;
+ 
+ drop user user02;
+ 
+ create user nbac identified by 1234;              --nbac는 관리자 유저생성
+ grant DBA,connect,resource
+ to nbac;
+ 
+ drop user nbac;
+ 
+ --system == nabc
+ --nbac 
+ 
+ -----------------------------nbac 객체-----------------------------------------
+ 
+ create user user03 identified by 1234;             --nbac 계정에서는 권한부여도 가능
+ 
+ 
+  -----------------------------nbac 객체-----------------------------------------
   
+  
+ -- 사용자 정의 롤
+ -- 관리자 계정에서만 가능
+ -- create role 롤명
+ -- grant 권한 to 롤명
+ 
+ --------------------------------system 계정-----------------------------------
+ 
+  create role mrole;                              --롤 객체 생성
+  grant create session,create table,create view   --롤에 권한 부여 (계정생성권한,테이블생성권한, 뷰 생성권한)
+  to mrole;
+  
+   create user user04 identified by 1234;          --계정 생성
+   
+   grant mrole                                    --내가 만든 롤을 계정에 부여
+   to user04;
+   
+   alter user user04                            --쿼터 권한부여 (용량부여)
+   quota 2m on users;
+   
+   -- 관리자 권한에서 롤 생성
+   create role mrole2;
+   
+   -- 객체권한은 해당 사용자 계정에서 가능
+   -- scott 접속 mrole 롤에 권한부여
+   -- grant select
+   -- on emp
+   -- user mrole2;
+   
+   -- 롤 권한은 관리자 계정에서만 가능
+   grant mrole2
+   to user04;
+   
+   
+ 
+ --------------------------------system 계정-----------------------------------
+ 
+ -----------------------------user 04 계정--------------------------------------
+ 
+ create table test2 (
+    name varchar2(10)
+    );
+    
+  insert into test2
+  values ('aaa');
+  
+  select * from test2;
+  
+   
+ -----------------------------user 04 계정--------------------------------------
+ 
+   --scott계정
+   grant select
+   on emp
+   to mrole2;
+   
+   --user04
+   select * from .emp;
+  
+  --system
+   create role mrole3;
+  
+  --scott
+  grant select
+  on emp
+  to mrole3;
+  
+  --system
+  grant mrole3
+  to user01;
+  
+  --user01
+  select * from user_role_privs;          --권한 부여 확인
+  
+  set ROLE all;                           --비활성화 해제 문구
+  select * from scott.emp;
+  
+  create user user05 identified by 1234;
+  grant connect,resource
+  
+  --system   롤 권한 회수
+  revoke role mrole3
+  from user01;
+  
+  
+  --system
+  create user user05 identified by 1234;
+  
+  grant connect,resource
+  to user05;
+  
+  --user05
+  
+  select * from user_role_privis;
+  set ROLE all;
+  select * from scott.emp;
+  
+  --system
+  create role mrole3;
+  
+  --scott
+  grant select
+  on emp
+  to mrole3;
+  
+  --system
+  grant mrole3
+  to user05;
+  
+  revoke mrole3
+  from user05;
+  
+  
+  --PL/SQL (확장되어진 SQL언어)
+  -- 변수, 조건문, 반복문
+  
+  -- declare  (변수정의)  
+  --  스칼라 방식
+  --  vempno number(4);
+  --  레퍼런스 방식
+  --  vempno emp.empno%type;          -- 기존 테이블의 컬럼에 타입을 참조한다. 
+  
+  -- begin    (SQL구문 작성
+  --           출력구문 작성)
+  -- exception  (예외처리구문)
+  -- end; /
+  
+  -- set serveroutpu on;     <- 먼저 실행해야함
+  
+  set serveroutpu on;
+  
+  begin
+      dbms_output.put_line(' Hello World');  
+  end;
+  /
+  
+  
+  
+  declare                        -- 변수 정의하는 부분
+      --vempno number(4);          -- 변수의 선언    (데이터 타입과 크기 설정)
+      --vename varchar2(10);
+      
+      vempno number(4) := 7777;                --상수의 정의
+      vename varchar2(10) not null := 'SCOTT'; -- null 갑을 변수의 값으로 사용할 수 없다.
+  begin
+      --vempno := 7777;                        -- 변수의 초기화 := 는 대입연산자 붙여서써야함
+      --vename := 'SCOTT';                     -- 문자는 호따음표
+      
+      dbms_output.put_line(' 사원 / 이름' );           -- 자바에서 sysout과 동일
+      dbms_output.put_line(vempno || ' ' || vename);  --연결하여 출력할 경우 || 활용
+  end;
+  /
+  
+  declare
+  vempno emp.empno%type := 7777;   -- := 직접초기화 가능   레퍼런스 방식
+  
+   begin
+       --vempno := 7777;
+       dbms_output.put_line(vempno);
+end;
+/
+
+declare
+  vempno emp.empno%type;
+  vename emp.ename%type;
+  
+begin
+  select empno,ename 
+  into vempno,vename                                  -- (필수) into 절을 사용해서 변수를 지정해야한다.
+  from emp;
+  where empno = 7788;                             -- 반드시 where절을 사용해야한다.
+  
+  dbms_output.put_line(' 사번 / 이름 ') ;
+  dbms_output.put_line(vempno || ' ' || vename);
+--exception                                               --예외처리
+  --when TOO_MANY_ROWS then dbms_output.put_line('행의수가 여러개 입니다.');
+  --when OTHERS then dbms_output.put_line('모든 예외에 대한 처리');
+  --       
+end;
+/
+
+select*
+from emp;
+
+declare
+  -- 테이블 type(사용자 정의 변수 타입)
+  -- 배열의 형식
+  -- vename varchar(10) 
+  TYPE empno_table_type IS TABLE OF emp.empno%type 
+  INDEX BY BINARY_INTEGER;
+  
+   TYPE ename_table_type IS TABLE OF emp.ename%type 
+  INDEX BY BINARY_INTEGER;
+  
+  TYPE job_table_type IS TABLE OF emp.job%type
+  INDEX BY BINARY_INTEGER;
+  
+  TYPE mgr_table_type IS TABLE OF emp.mgr%type
+  INDEX BY BINARY_INTEGER;
+  
+  TYPE hiredate_table_type IS TABLE OF emp.hiredate%type
+  INDEX BY BINARY_INTEGER;
+  
+  TYPE sal_table_type IS TABLE OF emp.sal%type
+  INDEX BY BINARY_INTEGER;
+  
+  TYPE comm_table_type IS TABLE OF emp.comm%type
+  INDEX BY BINARY_INTEGER;
+  
+  TYPE deptno_table_type IS TABLE OF emp.deptno%type
+  INDEX BY BINARY_INTEGER;
+  
+    empnoArr empno_table_type;
+    enameArr ename_table_type; -- 배열 형식의 변수 선언
+    jobArr job_table_type;     -- 배열 형식의 변수 선언
+    mgrArr mgr_table_type;
+    hiredateArr hiredate_table_type;
+    salArr sal_table_type;
+    commArr comm_table_type;
+    deptnoArr deptno_table_type;
+  
+  i BINARY_INTEGER := 0;
+  
+begin
+  for k in (select empno,ename,job,mgr,hiredate,sal,comm,deptno from emp) loop      -- 반복문
+      i := i + 1;
+      empnoArr(i) := k.empno;
+      enameArr(i) := k.ename;                    --ename 14개를 배열
+      jobArr(i) := k.job;
+      mgrArr(i) := k.mgr;
+      hiredateArr(i) := k.hiredate;
+      salArr(i) := k.sal;
+      commArr(i) := k.comm;
+      deptno(i) := k.deptno;
+      
+  end loop;
+  
+  for j in 1..i loop
+         dbms_output.put_line(empnoArr(j) ||'  /  '|| enameArr(j) ||'  /  '|| jobArr(j) ||'  /  '|| );
+    
+  end loop;
+end;
+/
+
+-------------------------------레코드 타입---------------------------------------
+
+declare 
+    -- 테이블 type(사용자 정의 변수 타입)
+    -- 배열의 형식
+    -- vename varchar(10)
+      -- 레코드 type(여러개의 변수를 묶어서 사용한다) => 사용자 정의 변수 타입
+  -- 클래스랑 유사하다.
+  
+  TYPE emp_record_type IS RECORD (
+      v_empno emp.empno%type,
+      v_ename emp.ename%type,
+      v_job emp.job%type,
+      v_deptno emp.deptno%type
+      );
+    
+    emp_record emp_record_type; -- 레코드 타입의 변수 선언;
+    
+begin
+   select empno,ename,job,deptno
+   into emp_record
+   from emp
+   where empno = 7788;
+   
+   dbms_output.put_line( emp_record.v_empno || ' ' || emp_record.v_ename || ' ' || emp_record.v_job || ' ' || emp_record.v_deptno);
+   
+end;
+/
+
+
+-------------------------------레코드 삽입---------------------------------------
+
+create table dept_record
+as
+select * from dept;
+
+declare
+        TYPE rec_dept IS RECORD(
+            v_deptno dept_record.deptno%type,
+            v_dname dept_record.dname%type,
+            v_loc dept_record.loc%type
+        );
+        
+        dept_rec rec_dept;
+begin 
+      dept_rec.v_deptno := 50;
+      dept_rec.v_dname := 'DEV';
+      dept_rec.v_loc := 'BUSAN';
+
+      insert into dept_record
+      values dept_rec;          
+    
+end;
+/
+
+select * from dept_record;
+
+
+------------------------------업데이트---------------------------------------
+
+declare
+        TYPE rec_dept IS RECORD(
+           v_deptno dept_record.deptno%type not null := 99,   
+           v_dname dept_record.dname%type,
+           v_loc dept_record.loc%type
+        );
+         dept_rec rec_dept;      
+begin 
+      dept_rec.v_deptno := 50;
+      dept_rec.v_dname := 'INSA';
+      dept_rec.v_loc := 'SEOUL';
+      
+      update dept_record
+      set dname = dept_rec.v_dname, loc = dept_rec.v_loc
+      where deptno = dept_rec.v_deptno;
+      
+end;
+/
+
+
+
+declare
+     v_deptno dept_record.deptno%type := 50;
+begin
+     delete from dept_record
+     where deptno = v_deptno;
+end;
+/
+
+--------------------------------조건문------------------------------------------
+
+declare
+     vempno number(4);
+     vename varchar2(10);
+     vdeptno varchar2(10);
+     vdname varchar2(10):= null;
+begin
+   select empno,ename,deptno
+   into vempno,vename,vdeptno
+   from emp
+   where empno = 7788;
+   
+   if (vdeptno = 10) then                         -- if (조건식) then  
+           vdname := 'AAA';                 --실행문
+   end if;
+   
+   if (vdeptno = 20) then                         
+           vdname := 'BBB';                
+   end if;
+   
+   if (vdeptno = 30) then                         
+          vdname := 'CCC';                
+   end if;
+      if (vdeptno = 40) then                         
+          vdname := 'DDD';                
+   end if;
+   
+   dbms_output.put_line('부서명 : ' || vdname);
+end;
+/
+
+
+
+declare
+   -- %ROWTPYE : 테이블의 모든 컬럼의 이름과 변수를 참조하겠다.
+   -- 컬럼명이 변수명으로 사용되고 컬럼의 타입을 변수의 타입으로 사용한다.
+   vemp emp%rowtype;
+begin
+   select *
+   into vemp
+   from emp
+   where empno = 7788;
+   
+   dbms_output.put_line(vemp.empno);
+   dbms_output.put_line(vemp.ename);
+   dbms_output.put_line(vemp.job);
+   dbms_output.put_line(vemp.mgr);
+   dbms_output.put_line(vemp.hiredate);
+   dbms_output.put_line(vemp.sal);
+   dbms_output.put_line(vemp.comm);
+   dbms_output.put_line(vemp.deptno);
+         
+end;
+/
+
+
+-- 스칼라 방식
+-- 레퍼런스 방식
+-- 1. emp.empno%type
+-- 2. emp%rowtype
+
+-- 사용자 정의 변수 타입
+-- 1. 테이블 type
+--        TYPE xxxx
+-- 2. 레코드 type
+
+
+declare
+   -- %ROWTPYE : 테이블의 모든 컬럼의 이름과 변수를 참조하겠다.
+   -- 컬럼명이 변수명으로 사용되고 컬럼의 타입을 변수의 타입으로 사용한다.
+   vemp emp%rowtype;
+   annsal number(7,2);
+begin
+  dbms_output.put_line(' 사번 / 이름 / 연봉');
+  dbms_output.put_line('-----------------');
+  
+  select *
+  into vemp
+  from emp
+  where empno = 7788;
+  
+  -- 해당 사원의 연봉을 출력하세요. 단 커미션이 null인 경우 0으로 계산되게 하세요.
+  -- 계산된 연봉을 변수 annsal에 넣어서 출력하세요
+  
+  if ( vemp.comm is null) then
+       annsal := vemp.sal * 12;
+  else
+       annsal := vemp.sal * 12 +vemp.comm; 
+  end if;
+     
+   dbms_output.put_line(vemp.empno || ' ' || vemp.ename || ' '|| annsal);
+  
+end;
+/
+
+select * from emp;
+
+
+declare
+     vemp emp%rowtype;
+     vdname varchar2(10);
+begin
+    select *
+    into vemp
+    from emp
+    where empno = 7788;
+    
+    if( vemp.deptno = 10 ) then                        -- else if => elsif (e가 빠진다)
+          vdname := 'AAA';
+    elsif (vemp.deptno = 20) then    
+          vdname := 'BBB';
+    elsif (vemp.deptno = 30) then    
+          vdname := 'CCC';
+    elsif (vemp.deptno = 40) then    
+          vdname := 'DDD';
+    end if;
+    
+    dbms_output.put_line(vdname);
+end;
+/
+
+-- 반복문
+
+loop 
+   실행문 ( 무한 반복문 )
+   무한 반복문의 제어
+   1. EXIT WHEN 조건식;
+   2. IF THEN END IF;
+end loop;
+
+declare 
+    n number := 1;
+begin
+   loop
+     dbms_output.put_line(n);
+     n := n + 1;
+     exit when n > 10;          --반복문 멈추기 위한 조건
+   end loop;
+end;
+/
+
+---------------------------------for문 ---------------------------------------
+
+begin 
+      -- in 구문 뒤에 작성되는 값이 반복의 횟수를 결정한다.
+      for n in 1..100 loop      --for 뒤에는 일종의 변수 in 시작값 .. 끝값 기본적으로 1씩 증가
+            dbms_output.put_line(n);
+      end loop;
+end;
+/
+
+begin 
+      -- in reverse 는 반대로 감소 연산
+      for n in reverse 1..10 loop      --for 뒤에는 일종의 변수 in 시작값 .. 끝값 기본적으로 1씩 증가
+            dbms_output.put_line(n);
+      end loop;
+end;
+/
+
+-------------------------where 뺴면 오류 나므로 반복문으로 활용--------------------
+
+declare 
+    vdept dept%rowtype;
+begin
+    for n in 1..4 loop
+    select *
+    into vdept
+    from dept
+    where deptno = 10 * n;      --1번쨰 돌릴때 10번 2 돌떄 20 3돌떄 30 4 돌때 40 
+    dbms_output.put_line(vdept.deptno || ' ' || vdept.dname || ' ' || vdept.loc);
+    end loop;
+end;
+/
+
+-------------------------------while 반복문--------------------------------------
+
+declare
+      n number := 1;
+begin
+    while(n <= 10) loop
+          dbms_output.put_line(n);
+          n := n + 1;
+    end loop;
+end;
+/
+
+
+declare 
+    vdept dept%rowtype;
+begin
+    for n in 1..4 loop
+    select *
+    into vdept
+    from dept
+    where deptno = 10 * n;      --1번쨰 돌릴때 10번 2 돌떄 20 3돌떄 30 4 돌때 40 
+    dbms_output.put_line(vdept.deptno || ' ' || vdept.dname || ' ' || vdept.loc);
+    end loop;
+end;
+/
+
+declare
+     vdept dept%rowtype;
+     n number := 1;
+begin
+      
+      while(n <= 4) loop
+      select *
+      into vdept
+      from dept
+      where deptno = 10 * n;
+       dbms_output.put_line(vdept.deptno || ' ' || vdept.dname || ' ' || vdept.loc);
+          n := n + 1;
+    end loop;
+end;
+/
+
+
+-- 조건문 
+-- if then end if;
+-- if then else end if;
+-- if then elsif then end if;
+
+-- 반복문
+-- loop end loop;
+-- for in loop end loop;
+-- while loop end loop;
+      
+
+-------------------------------저장 프로시져-------------------------------------
+set serveroutput on;
+-- 저장 프로시져
+-- 1. 생성(create)  -> 2. 실행 (execute or exec)
+
+--create or replace procedure 프로시져명 (매개변수)
+
+--is or as
+--    변수 정의
+--begin
+--    SQL
+--    출력구문
+--   조건문 , 반복문
+--end;
+--/
+-- execute 프로시져명;      (실행)
+
+drop table emp01;
+
+create table emp01
+as
+select * from emp;
+
+create or replace procedure emp01_print
+is 
+  vempno number(10);
+  vename varchar2(10);
+begin
+  vempno := 1111;
+  vename := 'KANG';
+  
+  dbms_output.put_line(vempno || ' ' || vename);
+end;
+/
+
+execute emp01_print;
+exec emp01_print;
+
+
+create or replace procedure emp01_del
+is
+begin
+    delete from emp01;
+end;
+/
+
+exec emp01_del;
+
+select * from emp01;
+
+
+------------------------------매개변수 활용한 프로시져-----------------------------
+
+create or replace procedure del_ename(vename emp01.ename%type)
+is
+  
+begin
+   delete from emp01
+   where ename = vename;
+end;
+/
+
+exec del_ename('SCOTT');                
+exec del_ename('SMITH');
+
+-- 저장프로시져의 매개변수 유형
+-- in, out, in out
+-- in : 값을 전달받는 용도
+-- out : 프로시져 내부의 실행 결과를 실행을 요청한 쪽으로 전달
+-- in out : in + out 
+
+create or replace procedure sel_empno
+(
+   vempno in emp.empno%type, 
+   vename out emp.ename%type,
+   vsal out emp.sal%type,
+   vjob out emp.job%type
+)
+is
+  
+begin
+    select ename,sal,job
+    into vename,vsal,vjob
+    from emp
+    where empno = vempno;                    --특정사원에 대한 데이터
+    
+end;
+/
+
+------바인드 변수 만드는법
+
+variable var_ename varchar2(15);
+variable var_sal number;                       
+variable var_job varchar2(9);
+
+-- exec sel_empno(7499,:바인드 변수1,:바인드 변수2,:바인드 변수3)    변수명앞에 : 붙여주어야함             
+exec sel_empno(7499,:var_ename,:var_sal,:var_job);
+
+print var_ename;
+print var_sal;
+print var_job;
+
+
+-- 사원 정보를 저장하는 저장 프로시져 만드세요
+-- 사번,이름,직책,매니져,부서
+-- 사원 정보는 매개변수 사용해서 받아온다.
+
+create table emp02
+as
+select empno,ename,job,mgr,deptno
+from emp;
+where 1 != 1;
+
+select*from emp02;
+
+create or replace procedure insert_sawon (   
+vempno in emp02.empno%type, 
+vename in emp02.ename%type,
+vjob in emp02.job%type,
+vmgr in emp02.mgr%type,
+vdeptno in emp02.deptno%type
+)
+is
+
+begin 
+     insert into emp02
+     values(vempno,vename,vjob,vmgr,vdeptno);
+end;
+/
+exec insert_sawon(1111,'kang','ceo',2222,10);
+
+select * from emp02;
+
+-- 저장함수
+-- 저장함수와 저장 프로시져의 차이점 : return값 유무
+-- 1. 생성(create)
+-- 2. 실행(execute)
+
+--create or replace funcion 함수명(매개변수)
+--    RETRUN 값의 타입              -- 세미콜론 생략
+--i
+
+--begin
+--    RETRUN 리턴값;                 --세미콜론 사용
+--end;
+--/
+
+create or replace function cal_bonus(vempno emp.empno%type)
+   return number
+is
+   vsal number(7,2);
+begin
+   select sal
+   into vsal
+   from emp
+   where empno = vempno;
+   
+   return vsal * 200;
+end;
+/
+
+variable var_res number;                   
+--exec뒤쪽에 바인드 변수를 선언해야 한다.
+exec :var_res := cal_bonus(7788);       
+
+print :var_res;
+
+drop procedure insertt_sawon;
+drop function cal_bonus;
+
+-- 커서
+
+--declare           --테이블 타입의 변수 생성
+    --커서 : select 구문이 실행하는 결과를 가리킨다.
+--    CURSOR 커서명 IS sql 구문(select); --커서선언
+--begin
+--    OPEN 커서명;
+--    LOOP
+--        FECTCH 커서명 INTO 변수명;      --테이블로부터 가져와서 변수에 저장하는 역활
+--         exit when 커서명%NOTFOUND;
+--    END LOOP;                           --END LOOP 같이 사용
+--    CLOSE 커서명;
+--end;
+--/
+
+declare
+   cursor c1 is select * from emp;
+   vemp emp%rowtype;              
+begin
+   open c1;
+   loop 
+      fetch c1 into vemp;
+      exit when c1%notfound;
+      dbms_output.put_line(vemp.empno || ' ' || vemp.ename || ' ' || vemp.job || ' ' || vemp.mgr || ' ' || vemp.hiredate || ' ' || vemp.sal || ' ' || vemp.comm || ' ' || vemp.deptno);     
+   end loop;
+   close c1;
+end;
+/
+
+--------------------------for loop문 활용한 커서-------------------------------
+
+declare
+   cursor c1 is select * from dept;
+   vdept dept%rowtype;
+begin
+   for vdept in c1 loop
+      exit when c1%notfound;
+      dbms_output.put_line(vdept.deptno || ' ' || vdept.dname || ' ' || vdept.loc);
+   end loop;
+end;
+/
+
+--아이디,이름,이름의 성, 부서 이름
+
+-- employees , departments
+
+select employee_id,first_name,last_name,department_name
+from employees e innner join departments d
+on e.department_id = d.department_id;
+
+
+
+
+create table student (
+    id number(10) constraint student_id_pk primary key,
+    name varchar2(10) constraint student_name_nn not null,
+    department varchar2(30) constraint student_department_nn not null
+    );
+    
+   drop table student;
+    
+    insert into student
+    values (7777,'KANG','COMPUTER');
+    
+    insert into student
+    values (7776,'KIM','ARCHITECTURE');
+    
+    insert into student
+    values (6666,'JUNG','ELECTRONICS');
+    
+    insert into student
+    values (5555,'PARK','MEDICINE');
+    
+    delete from student
+    where name = 'JUNG';
+    
+    select * from student;
